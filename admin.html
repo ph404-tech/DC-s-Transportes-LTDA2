@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — DC's Transportes LTDA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+<div class="app-container">
+    <div id="sidebar-placeholder"></div>
+    <div class="content-area">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <button class="mobile-menu-btn" id="mobile-menu-btn"><i class="ph ph-list"></i></button>
+                <h1>Painel Admin</h1>
+            </div>
+            <a href="profile.html" class="user-profile">
+                <div class="avatar" id="top-bar-avatar"><i class="ph ph-user"></i></div>
+                <span class="user-name" id="top-bar-name">Admin</span>
+            </a>
+        </div>
+        <div class="page-content">
+            <div class="admin-summary" id="admin-summary">
+                <div class="admin-stat"><i class="ph ph-users" style="color:var(--accent)"></i><div><div class="val" id="s-total">0</div><div class="lbl">Membros</div></div></div>
+                <div class="admin-stat"><i class="ph ph-clock" style="color:var(--warning)"></i><div><div class="val" id="s-pending">0</div><div class="lbl">Pendentes</div></div></div>
+                <div class="admin-stat"><i class="ph ph-check-circle" style="color:var(--success)"></i><div><div class="val" id="s-active">0</div><div class="lbl">Ativos</div></div></div>
+            </div>
+
+            <!-- Pending -->
+            <div class="card" style="margin-bottom:1.5rem;">
+                <div class="section-header"><div class="section-title"><i class="ph ph-clock"></i><h2>Aguardando Aprovação</h2></div></div>
+                <div id="pending-list" style="display:flex;flex-direction:column;gap:0.75rem;">
+                    <div class="loading"><div class="spinner"></div> Carregando...</div>
+                </div>
+            </div>
+
+            <!-- All Members -->
+            <div class="card">
+                <div class="section-header"><div class="section-title"><i class="ph ph-users"></i><h2>Todos os Membros</h2></div></div>
+                <div id="members-list" style="display:flex;flex-direction:column;gap:0.75rem;">
+                    <div class="loading"><div class="spinner"></div> Carregando...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script><script src="js/db.js"></script>
+<script src="js/auth.js"></script><script src="js/utils.js"></script><script src="js/admin.js"></script>
+</body></html>

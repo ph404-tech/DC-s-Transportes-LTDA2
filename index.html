@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — DC's Transportes LTDA</title>
+    <meta name="description" content="Acesse o sistema de gestão da DC's Transportes LTDA.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+
+<div class="auth-page">
+    <div class="auth-bg"></div>
+
+    <!-- LOGIN -->
+    <div class="auth-card" id="login-card">
+        <div class="auth-logo">
+            <i class="ph ph-truck"></i>
+            <h1>DC's Transportes</h1>
+            <p>Bem-vindo de volta, motorista.</p>
+        </div>
+
+        <form class="auth-form" id="login-form">
+            <div class="form-group">
+                <label>Email</label>
+                <div class="input-icon-wrap">
+                    <i class="ph ph-envelope"></i>
+                    <input class="form-input" type="email" id="login-email" placeholder="seu@email.com" required autocomplete="email">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <div class="input-icon-wrap">
+                    <i class="ph ph-lock"></i>
+                    <input class="form-input" type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+                    <button type="button" class="password-toggle" id="toggle-login-pass">
+                        <i class="ph ph-eye"></i>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full" id="login-btn" style="margin-top:0.5rem;">
+                <i class="ph ph-sign-in"></i> Entrar
+            </button>
+        </form>
+
+        <p class="auth-divider">
+            Não tem conta? <a href="#" id="go-register">Cadastre-se</a>
+        </p>
+    </div>
+
+    <!-- CADASTRO -->
+    <div class="auth-card" id="register-card" style="display:none;">
+        <div class="auth-logo">
+            <i class="ph ph-user-plus"></i>
+            <h1>Criar Conta</h1>
+            <p>Junte-se à DC's Transportes LTDA.</p>
+        </div>
+
+        <form class="auth-form" id="register-form">
+            <div class="form-group">
+                <label>Nome completo</label>
+                <div class="input-icon-wrap">
+                    <i class="ph ph-user"></i>
+                    <input class="form-input" type="text" id="reg-name" placeholder="Seu nome" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <div class="input-icon-wrap">
+                    <i class="ph ph-envelope"></i>
+                    <input class="form-input" type="email" id="reg-email" placeholder="seu@email.com" required autocomplete="email">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <div class="input-icon-wrap">
+                    <i class="ph ph-lock"></i>
+                    <input class="form-input" type="password" id="reg-password" placeholder="Mínimo 6 caracteres" required autocomplete="new-password">
+                    <button type="button" class="password-toggle" id="toggle-reg-pass">
+                        <i class="ph ph-eye"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Confirmar senha</label>
+                <div class="input-icon-wrap">
+                    <i class="ph ph-lock-key"></i>
+                    <input class="form-input" type="password" id="reg-confirm" placeholder="Repita a senha" required autocomplete="new-password">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full" id="register-btn" style="margin-top:0.5rem;">
+                <i class="ph ph-user-plus"></i> Cadastrar
+            </button>
+        </form>
+
+        <p class="auth-divider">
+            Já tem conta? <a href="#" id="go-login">Fazer login</a>
+        </p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Redireciona se já logado
+    if (Auth.isAuthenticated()) {
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
+    // Toggle cards
+    document.getElementById('go-register').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('login-card').style.display = 'none';
+        document.getElementById('register-card').style.display = 'block';
+    });
+    document.getElementById('go-login').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('register-card').style.display = 'none';
+        document.getElementById('login-card').style.display = 'block';
+    });
+
+    // Password toggles
+    function setupToggle(btnId, inputId) {
+        document.getElementById(btnId).addEventListener('click', () => {
+            const input = document.getElementById(inputId);
+            const icon  = document.querySelector(`#${btnId} i`);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'ph ph-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'ph ph-eye';
+            }
+        });
+    }
+    setupToggle('toggle-login-pass', 'login-password');
+    setupToggle('toggle-reg-pass', 'reg-password');
+
+    // Toast inline (antes do utils.js)
+    function toast(msg, type='success') {
+        let c = document.getElementById('toast-container');
+        if (!c) { c = document.createElement('div'); c.id='toast-container'; c.className='toast-container'; document.body.appendChild(c); }
+        const t = document.createElement('div');
+        t.className = `toast toast-${type}`;
+        const icon = type==='danger' ? 'ph-warning-circle' : 'ph-check-circle';
+        t.innerHTML = `<i class="ph ${icon}"></i><span>${msg}</span>`;
+        c.appendChild(t);
+        setTimeout(() => t.classList.add('show'), 10);
+        setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
+    }
+
+    // Login
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('login-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-spinner"></i> Entrando...';
+
+        const email = document.getElementById('login-email').value.trim();
+        const pass  = document.getElementById('login-password').value;
+
+        const user = await DB.getUserByEmail(email);
+        if (!user || user.password !== pass) {
+            toast('Email ou senha inválidos.', 'danger');
+        } else if (user.status === 'pending') {
+            toast('Conta aguardando aprovação do administrador.', 'danger');
+        } else {
+            Auth._setSession(user);
+            toast(`Bem-vindo, ${user.name}!`);
+            setTimeout(() => window.location.href = 'dashboard.html', 800);
+            return;
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ph ph-sign-in"></i> Entrar';
+    });
+
+    // Cadastro
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('register-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-spinner"></i> Cadastrando...';
+
+        const name    = document.getElementById('reg-name').value.trim();
+        const email   = document.getElementById('reg-email').value.trim();
+        const pass    = document.getElementById('reg-password').value;
+        const confirm = document.getElementById('reg-confirm').value;
+
+        if (pass !== confirm) {
+            toast('As senhas não coincidem!', 'danger');
+            btn.disabled = false; btn.innerHTML = '<i class="ph ph-user-plus"></i> Cadastrar';
+            return;
+        }
+        if (pass.length < 6) {
+            toast('A senha deve ter pelo menos 6 caracteres.', 'danger');
+            btn.disabled = false; btn.innerHTML = '<i class="ph ph-user-plus"></i> Cadastrar';
+            return;
+        }
+
+        const existing = await DB.getUserByEmail(email);
+        if (existing) {
+            toast('Este email já está cadastrado!', 'danger');
+            btn.disabled = false; btn.innerHTML = '<i class="ph ph-user-plus"></i> Cadastrar';
+            return;
+        }
+
+        const isAdmin = email === 'pedro@gmail.com';
+        const result = await DB.createUser({
+            name, email, password: pass,
+            status: isAdmin ? 'active' : 'pending',
+            role: isAdmin ? 'Administrador' : 'Motorista'
+        });
+
+        if (result) {
+            toast(isAdmin ? 'Conta criada! Faça login.' : 'Cadastro realizado! Aguarde aprovação.');
+            setTimeout(() => {
+                document.getElementById('register-card').style.display = 'none';
+                document.getElementById('login-card').style.display = 'block';
+                document.getElementById('reg-name').value = '';
+                document.getElementById('reg-email').value = '';
+                document.getElementById('reg-password').value = '';
+                document.getElementById('reg-confirm').value = '';
+            }, 1200);
+        } else {
+            toast('Erro ao cadastrar. Tente novamente.', 'danger');
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ph ph-user-plus"></i> Cadastrar';
+    });
+});
+</script>
+</body>
+</html>

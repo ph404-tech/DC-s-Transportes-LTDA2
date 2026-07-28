@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multas — DC's Transportes LTDA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+<div class="app-container">
+    <div id="sidebar-placeholder"></div>
+    <div class="content-area">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <button class="mobile-menu-btn" id="mobile-menu-btn"><i class="ph ph-list"></i></button>
+                <h1>Minhas Multas</h1>
+            </div>
+            <a href="profile.html" class="user-profile">
+                <div class="avatar" id="top-bar-avatar"><i class="ph ph-user"></i></div>
+                <span class="user-name" id="top-bar-name">Motorista</span>
+            </a>
+        </div>
+        <div class="page-content">
+            <!-- Summary -->
+            <div class="stats-grid" style="margin-bottom:1.5rem;">
+                <div class="stat-card">
+                    <div class="icon red"><i class="ph ph-warning-circle"></i></div>
+                    <div><div class="label">Total de Multas</div><div class="value" id="fine-count">0</div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon red"><i class="ph ph-currency-eur"></i></div>
+                    <div><div class="label">Valor Total</div><div class="value" id="fine-total">€ 0</div></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-header">
+                    <div class="section-title"><i class="ph ph-warning-circle"></i><h2>Histórico de Multas</h2></div>
+                    <button class="btn btn-primary" id="btn-add-fine"><i class="ph ph-plus"></i> Registrar Multa</button>
+                </div>
+                <div class="trips-list" id="fines-list">
+                    <div class="loading"><div class="spinner"></div> Carregando...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Multa -->
+<div class="modal-overlay" id="modal-fine">
+    <div class="modal">
+        <div class="modal-header">
+            <h2><i class="ph ph-warning-circle" style="color:var(--danger)"></i> Registrar Multa</h2>
+            <button class="icon-btn" id="btn-close-fine"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="fine-form" style="display:flex;flex-direction:column;gap:1rem;">
+            <div class="form-group">
+                <label>Tipo de infração</label>
+                <input class="form-input" type="text" id="fine-type" placeholder="Ex: Excesso de velocidade" required>
+            </div>
+            <div class="form-group">
+                <label>Valor (€)</label>
+                <input class="form-input" type="number" id="fine-amount" placeholder="0" min="0" required>
+            </div>
+            <button type="submit" class="btn btn-danger btn-full" id="btn-save-fine">
+                <i class="ph ph-floppy-disk"></i> Salvar Multa
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script><script src="js/db.js"></script>
+<script src="js/auth.js"></script><script src="js/utils.js"></script><script src="js/fines.js"></script>
+</body></html>

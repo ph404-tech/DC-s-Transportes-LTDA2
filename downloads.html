@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloads — DC's Transportes LTDA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+<div class="app-container">
+    <div id="sidebar-placeholder"></div>
+    <div class="content-area">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <button class="mobile-menu-btn" id="mobile-menu-btn"><i class="ph ph-list"></i></button>
+                <h1>Downloads</h1>
+            </div>
+            <a href="profile.html" class="user-profile">
+                <div class="avatar" id="top-bar-avatar"><i class="ph ph-user"></i></div>
+                <span class="user-name" id="top-bar-name">Motorista</span>
+            </a>
+        </div>
+        <div class="page-content">
+            <div class="section-header">
+                <div class="section-title"><i class="ph ph-download-simple"></i><h2>Arquivos e Recursos</h2></div>
+            </div>
+            <div class="downloads-grid">
+                <div class="download-card">
+                    <div class="download-icon"><i class="ph ph-truck"></i></div>
+                    <div class="download-name">Euro Truck Simulator 2</div>
+                    <div class="download-desc">Jogo base necessário para participar da frota. Disponível na Steam.</div>
+                    <div class="download-meta"><span><i class="ph ph-storefront"></i> Steam</span></div>
+                    <a href="https://store.steampowered.com/app/227300/Euro_Truck_Simulator_2/" target="_blank" class="btn btn-primary" style="margin-top:auto;">
+                        <i class="ph ph-arrow-square-out"></i> Acessar na Steam
+                    </a>
+                </div>
+                <div class="download-card">
+                    <div class="download-icon" style="background:rgba(16,185,129,0.15);color:var(--success);"><i class="ph ph-broadcast"></i></div>
+                    <div class="download-name">Plugin de Telemetria</div>
+                    <div class="download-desc">Plugin necessário para registrar dados de jogo automaticamente.</div>
+                    <div class="download-meta"><span><i class="ph ph-github-logo"></i> GitHub</span></div>
+                    <a href="https://github.com/RenCloud/scs-sdk-plugin/releases" target="_blank" class="btn btn-success" style="margin-top:auto;">
+                        <i class="ph ph-download-simple"></i> Baixar Plugin
+                    </a>
+                </div>
+                <div class="download-card">
+                    <div class="download-icon" style="background:rgba(245,158,11,0.15);color:var(--warning);"><i class="ph ph-map"></i></div>
+                    <div class="download-name">ProMods Europe</div>
+                    <div class="download-desc">Expansão que adiciona mais de 100 cidades europeias ao jogo.</div>
+                    <div class="download-meta"><span><i class="ph ph-globe"></i> Site Oficial</span></div>
+                    <a href="https://www.promods.net/" target="_blank" class="btn btn-ghost" style="margin-top:auto;border-color:var(--warning);color:var(--warning);">
+                        <i class="ph ph-arrow-square-out"></i> Site ProMods
+                    </a>
+                </div>
+                <div class="download-card">
+                    <div class="download-icon" style="background:rgba(139,92,246,0.15);color:#a78bfa;"><i class="ph ph-wrench"></i></div>
+                    <div class="download-name">Mod Manager</div>
+                    <div class="download-desc">Ferramenta para gerenciar e organizar seus mods do ETS2.</div>
+                    <div class="download-meta"><span><i class="ph ph-desktop"></i> Windows</span></div>
+                    <a href="https://www.truckersmp.com/download" target="_blank" class="btn btn-ghost" style="margin-top:auto;">
+                        <i class="ph ph-arrow-square-out"></i> TruckersMP
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script><script src="js/db.js"></script>
+<script src="js/auth.js"></script><script src="js/utils.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => window.initPage('downloads'));</script>
+</body></html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mods — DC's Transportes LTDA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+<div class="app-container">
+    <div id="sidebar-placeholder"></div>
+    <div class="content-area">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <button class="mobile-menu-btn" id="mobile-menu-btn"><i class="ph ph-list"></i></button>
+                <h1>Mods Recomendados</h1>
+            </div>
+            <a href="profile.html" class="user-profile">
+                <div class="avatar" id="top-bar-avatar"><i class="ph ph-user"></i></div>
+                <span class="user-name" id="top-bar-name">Motorista</span>
+            </a>
+        </div>
+        <div class="page-content">
+            <div class="section-header">
+                <div class="section-title"><i class="ph ph-cube"></i><h2>Mods da Frota</h2></div>
+                <span style="font-size:0.82rem;color:var(--text-secondary);">Mods usados pelos membros da DC's Transportes</span>
+            </div>
+
+            <!-- Filters -->
+            <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+                <button class="btn btn-primary filter-btn" data-cat="all">Todos</button>
+                <button class="btn btn-ghost filter-btn" data-cat="physics">Física</button>
+                <button class="btn btn-ghost filter-btn" data-cat="graphic">Gráficos</button>
+                <button class="btn btn-ghost filter-btn" data-cat="traffic">Tráfego</button>
+                <button class="btn btn-ghost filter-btn" data-cat="truck">Caminhões</button>
+            </div>
+
+            <div class="downloads-grid" id="mods-grid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script><script src="js/db.js"></script>
+<script src="js/auth.js"></script><script src="js/utils.js"></script>
+<script>
+const MODS = [
+    { cat:'physics', icon:'ph-car-profile',   name:'Realistic Physics',      desc:'Física realista de condução, suspensão e frenagem.', url:'https://steamcommunity.com/sharedfiles/filedetails/?id=1367804591', color:'var(--accent)' },
+    { cat:'graphic', icon:'ph-sun',            name:'RealLight',              desc:'Iluminação realista para dia e noite.', url:'https://steamcommunity.com/sharedfiles/filedetails/?id=682147858', color:'var(--warning)' },
+    { cat:'traffic', icon:'ph-traffic-cone',   name:'Real Traffic Density',   desc:'Densidade de tráfego realista nas estradas.', url:'https://steamcommunity.com/sharedfiles/filedetails/?id=1752358614', color:'var(--success)' },
+    { cat:'truck',   icon:'ph-truck',          name:'Scania S & R 2016',      desc:'Mod oficial Scania com interior detalhado.', url:'https://steamcommunity.com/sharedfiles/filedetails/?id=618239965', color:'#f472b6' },
+    { cat:'graphic', icon:'ph-cloud',          name:'Improved Vanilla Skies', desc:'Texturas de céu melhoradas e atmosfera realista.', url:'https://steamcommunity.com/sharedfiles/filedetails/?id=667375311', color:'#60a5fa' },
+    { cat:'physics', icon:'ph-wind',           name:'Cabin Accessories',      desc:'Acessórios internos para personalizar a cabine.', url:'https://store.steampowered.com/app/304212/Euro_Truck_Simulator_2__Cabin_Accessories/', color:'var(--accent)' },
+    { cat:'traffic', icon:'ph-map-pin',        name:'Google Maps Navigation', desc:'Interface de navegação estilo Google Maps.', url:'https://steamcommunity.com/sharedfiles/filedetails/?id=803671888', color:'var(--success)' },
+    { cat:'truck',   icon:'ph-steering-wheel', name:'Mercedes Actros MP4',    desc:'Mercedes Actros MP4 com detalhes realistas.', url:'https://steamcommunity.com/sharedfiles/filedetails/?id=673993953', color:'#a78bfa' },
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.initPage('mods');
+    let current = 'all';
+
+    function renderMods() {
+        const grid = document.getElementById('mods-grid');
+        const filtered = current === 'all' ? MODS : MODS.filter(m => m.cat === current);
+        grid.innerHTML = filtered.map(m => `
+            <div class="download-card">
+                <div class="download-icon" style="background:rgba(59,130,246,0.1);color:${m.color};"><i class="ph ${m.icon}"></i></div>
+                <div class="download-name">${m.name}</div>
+                <div class="download-desc">${m.desc}</div>
+                <a href="${m.url}" target="_blank" class="btn btn-ghost" style="margin-top:auto;">
+                    <i class="ph ph-steam-logo"></i> Ver na Steam Workshop
+                </a>
+            </div>
+        `).join('');
+    }
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            current = btn.dataset.cat;
+            document.querySelectorAll('.filter-btn').forEach(b => { b.className = 'btn btn-ghost filter-btn'; });
+            btn.className = 'btn btn-primary filter-btn';
+            renderMods();
+        });
+    });
+
+    renderMods();
+});
+</script>
+</body></html>

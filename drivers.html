@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motoristas — DC's Transportes LTDA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+<div class="app-container">
+    <div id="sidebar-placeholder"></div>
+    <div class="content-area">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <button class="mobile-menu-btn" id="mobile-menu-btn"><i class="ph ph-list"></i></button>
+                <h1>Nossos Motoristas</h1>
+            </div>
+            <a href="profile.html" class="user-profile" title="Meu Perfil">
+                <div class="avatar" id="top-bar-avatar"><i class="ph ph-user"></i></div>
+                <span class="user-name" id="top-bar-name">Motorista</span>
+            </a>
+        </div>
+        <div class="page-content">
+            <div class="section-header">
+                <div class="section-title"><i class="ph ph-trophy"></i><h2>Ranking do Período</h2></div>
+                <div class="month-filter-wrap">
+                    <i class="ph ph-calendar-blank" style="color:var(--text-secondary)"></i>
+                    <input type="month" id="month-filter">
+                </div>
+            </div>
+            <div class="drivers-grid" id="drivers-grid">
+                <div class="loading"><div class="spinner"></div> Carregando...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/drivers.js"></script>
+</body>
+</html>

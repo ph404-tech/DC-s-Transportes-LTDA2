@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — DC's Transportes LTDA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+<div class="app-container">
+    <div id="sidebar-placeholder"></div>
+    <div class="content-area">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <button class="mobile-menu-btn" id="mobile-menu-btn"><i class="ph ph-list"></i></button>
+                <h1>Painel de Controle</h1>
+            </div>
+            <a href="profile.html" class="user-profile" title="Meu Perfil">
+                <div class="avatar" id="top-bar-avatar"><i class="ph ph-user"></i></div>
+                <span class="user-name" id="top-bar-name">Motorista</span>
+            </a>
+        </div>
+        <div class="page-content">
+            <!-- Stats -->
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card">
+                    <div class="icon"><i class="ph ph-gauge"></i></div>
+                    <div><div class="label">Total Percorrido</div><div class="value" id="stat-km">0 km</div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon"><i class="ph ph-truck"></i></div>
+                    <div><div class="label">Viagens</div><div class="value" id="stat-trips">0</div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon green"><i class="ph ph-currency-eur"></i></div>
+                    <div><div class="label">Lucro Total</div><div class="value" id="stat-income">€ 0</div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon red"><i class="ph ph-warning-circle"></i></div>
+                    <div><div class="label">Multas</div><div class="value" id="stat-fines">0</div></div>
+                </div>
+            </div>
+
+            <!-- Monthly Stats -->
+            <div class="card" style="margin-bottom:1.5rem;">
+                <div class="section-header">
+                    <div class="section-title"><i class="ph ph-chart-bar"></i><h2>Estatísticas Mensais</h2></div>
+                </div>
+                <div class="monthly-grid" id="monthly-grid">
+                    <div class="loading"><div class="spinner"></div> Carregando...</div>
+                </div>
+            </div>
+
+            <!-- Trip History -->
+            <div class="card">
+                <div class="section-header">
+                    <div class="section-title"><i class="ph ph-road-horizon"></i><h2>Últimas Viagens</h2></div>
+                    <div style="display:flex;gap:0.5rem;">
+                        <button class="btn btn-primary" id="btn-add-trip"><i class="ph ph-plus"></i> Nova Viagem</button>
+                        <button class="icon-btn" id="btn-clear-history" title="Limpar histórico"><i class="ph ph-trash"></i></button>
+                    </div>
+                </div>
+                <div class="trips-list" id="trips-list">
+                    <div class="loading"><div class="spinner"></div> Carregando...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Adicionar Viagem -->
+<div class="modal-overlay" id="modal-trip">
+    <div class="modal">
+        <div class="modal-header">
+            <h2><i class="ph ph-truck" style="color:var(--accent)"></i> Registrar Viagem</h2>
+            <button class="icon-btn" id="btn-close-trip"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="trip-form" style="display:flex;flex-direction:column;gap:1rem;">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Origem</label>
+                    <input class="form-input" type="text" id="input-source" placeholder="Ex: Berlim" required>
+                </div>
+                <div class="form-group">
+                    <label>Destino</label>
+                    <input class="form-input" type="text" id="input-dest" placeholder="Ex: Paris" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Distância (km)</label>
+                    <input class="form-input" type="number" id="input-distance" placeholder="0" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Carga</label>
+                    <input class="form-input" type="text" id="input-cargo" placeholder="Ex: Eletrônicos">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Lucro (€)</label>
+                <input class="form-input" type="number" id="input-income" placeholder="0" min="0">
+            </div>
+            <button type="submit" class="btn btn-primary btn-full" id="btn-save-trip">
+                <i class="ph ph-floppy-disk"></i> Salvar Viagem
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

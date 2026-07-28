@@ -1,0 +1,4 @@
+node_modules/
+.env
+*.log
+show_window.ps1
