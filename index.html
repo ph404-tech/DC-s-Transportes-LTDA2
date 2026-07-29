@@ -42,6 +42,12 @@
                     </button>
                 </div>
             </div>
+            <div class="form-group-remember">
+                <label class="remember-label">
+                    <input type="checkbox" id="remember-me">
+                    <span>Sempre lembrar?</span>
+                </label>
+            </div>
             <button type="submit" class="btn btn-primary btn-full" id="login-btn" style="margin-top:0.5rem;">
                 <i class="ph ph-sign-in"></i> Entrar
             </button>
@@ -115,6 +121,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // Carregar credenciais salvas se "Sempre lembrar?" estiver ativo
+    const rememberMeCheck = document.getElementById('remember-me');
+    if (localStorage.getItem('dct_remember_me') === 'true') {
+        const savedEmail = localStorage.getItem('dct_remembered_email');
+        const savedPass  = localStorage.getItem('dct_remembered_password');
+        if (savedEmail) document.getElementById('login-email').value = savedEmail;
+        if (savedPass)  document.getElementById('login-password').value = savedPass;
+        if (rememberMeCheck) rememberMeCheck.checked = true;
+    }
+
     // Toggle cards
     document.getElementById('go-register').addEventListener('click', (e) => {
         e.preventDefault();
@@ -173,6 +189,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (user.status === 'pending') {
             toast('Conta aguardando aprovação do administrador.', 'danger');
         } else {
+            if (rememberMeCheck && rememberMeCheck.checked) {
+                localStorage.setItem('dct_remember_me', 'true');
+                localStorage.setItem('dct_remembered_email', email);
+                localStorage.setItem('dct_remembered_password', pass);
+            } else {
+                localStorage.removeItem('dct_remember_me');
+                localStorage.removeItem('dct_remembered_email');
+                localStorage.removeItem('dct_remembered_password');
+            }
             Auth._setSession(user);
             toast(`Bem-vindo, ${user.name}!`);
             setTimeout(() => window.location.href = 'dashboard.html', 800);

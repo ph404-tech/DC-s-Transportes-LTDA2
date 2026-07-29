@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETS2 Sincronização — DC's Transportes LTDA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        .sync-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        @media (max-width: 768px) { .sync-grid { grid-template-columns: 1fr; } }
+
+        .status-pill {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.4rem 1rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600;
+        }
+        .status-pill.connected    { background: rgba(52,211,153,0.15); color: #34d399; }
+        .status-pill.disconnected { background: rgba(239,68,68,0.15);  color: #ef4444; }
+        .status-pill.connecting   { background: rgba(251,191,36,0.15); color: #fbbf24; }
+
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+        .dot.pulse { animation: pulse-dot 1.2s ease-in-out infinite; }
+        @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .telemetry-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+        }
+        @media (max-width: 900px) { .telemetry-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 500px) { .telemetry-grid { grid-template-columns: 1fr; } }
+
+        .tele-card {
+            background: var(--surface-2); border: 1px solid var(--border);
+            border-radius: 12px; padding: 1rem; text-align: center;
+        }
+        .tele-card .tele-icon { font-size: 1.5rem; color: var(--accent); margin-bottom: 0.4rem; }
+        .tele-card .tele-val  { font-size: 1.4rem; font-weight: 700; color: var(--text-primary); }
+        .tele-card .tele-lbl  { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem; }
+
+        .job-card {
+            background: var(--surface-2); border: 1px solid var(--border);
+            border-radius: 12px; padding: 1.25rem;
+        }
+        .job-route { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 1rem; flex-wrap: wrap; }
+        .job-route .arrow { color: var(--accent); }
+
+        .log-box {
+            background: var(--surface-2); border: 1px solid var(--border);
+            border-radius: 10px; padding: 0.75rem 1rem;
+            font-family: monospace; font-size: 0.8rem;
+            color: var(--text-secondary); max-height: 180px; overflow-y: auto;
+        }
+        .log-box .log-entry { padding: 0.15rem 0; border-bottom: 1px solid var(--border); }
+        .log-box .log-entry:last-child { border-bottom: none; }
+        .log-entry.ok   { color: #34d399; }
+        .log-entry.warn { color: #fbbf24; }
+        .log-entry.err  { color: #ef4444; }
+
+        .setup-steps { display: flex; flex-direction: column; gap: 0.75rem; }
+        .setup-step {
+            display: flex; align-items: flex-start; gap: 0.75rem;
+            background: var(--surface-2); border: 1px solid var(--border);
+            border-radius: 10px; padding: 0.9rem 1rem;
+        }
+        .step-num {
+            min-width: 28px; height: 28px; border-radius: 50%;
+            background: var(--accent); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: 700;
+        }
+        .step-text { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5; }
+        .step-text strong { color: var(--text-primary); }
+        .step-text a { color: var(--accent); }
+
+        .speed-gauge {
+            position: relative; width: 100px; height: 100px; margin: 0 auto;
+        }
+        .speed-gauge svg { transform: rotate(-90deg); }
+        .speed-gauge .speed-text {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1.2rem;
+        }
+        .speed-gauge .speed-unit { font-size: 0.65rem; color: var(--text-secondary); font-weight: 400; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div id="sidebar-placeholder"></div>
+    <div class="content-area">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <button class="mobile-menu-btn" id="mobile-menu-btn"><i class="ph ph-list"></i></button>
+                <h1>ETS2 Sincronização</h1>
+            </div>
+            <a href="profile.html" class="user-profile">
+                <div class="avatar" id="top-bar-avatar"><i class="ph ph-user"></i></div>
+                <span class="user-name" id="top-bar-name">Motorista</span>
+            </a>
+        </div>
+
+        <div class="page-content">
+
+            <!-- Status Bar -->
+            <div class="card" style="margin-bottom:1.25rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+                <div style="display:flex;align-items:center;gap:1rem;">
+                    <span id="conn-status" class="status-pill disconnected">
+                        <span class="dot"></span> Desconectado
+                    </span>
+                    <span style="font-size:0.82rem;color:var(--text-secondary);">
+                        ETS2 Telemetry Server: <code style="background:var(--surface-2);padding:0.1rem 0.4rem;border-radius:4px;">ws://localhost:25555</code>
+                    </span>
+                </div>
+                <div style="display:flex;gap:0.5rem;">
+                    <button class="btn btn-primary" id="btn-connect">
+                        <i class="ph ph-plug"></i> Conectar
+                    </button>
+                    <button class="btn btn-ghost" id="btn-disconnect" style="display:none;">
+                        <i class="ph ph-plug-charging"></i> Desconectar
+                    </button>
+                </div>
+            </div>
+
+            <div class="sync-grid">
+                <!-- Left Column -->
+                <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+                    <!-- Live Telemetry -->
+                    <div class="card">
+                        <h3 style="margin-bottom:1rem;font-size:1rem;">📡 Telemetria ao Vivo</h3>
+                        <div class="telemetry-grid">
+                            <div class="tele-card">
+                                <div class="tele-icon"><i class="ph ph-speedometer"></i></div>
+                                <div class="tele-val" id="t-speed">0</div>
+                                <div class="tele-lbl">km/h</div>
+                            </div>
+                            <div class="tele-card">
+                                <div class="tele-icon"><i class="ph ph-road-horizon"></i></div>
+                                <div class="tele-val" id="t-odometer">0</div>
+                                <div class="tele-lbl">Odômetro (km)</div>
+                            </div>
+                            <div class="tele-card">
+                                <div class="tele-icon"><i class="ph ph-gas-pump"></i></div>
+                                <div class="tele-val" id="t-fuel">0</div>
+                                <div class="tele-lbl">Combustível (%)</div>
+                            </div>
+                            <div class="tele-card">
+                                <div class="tele-icon"><i class="ph ph-package"></i></div>
+                                <div class="tele-val" id="t-cargo" style="font-size:0.9rem;">—</div>
+                                <div class="tele-lbl">Carga</div>
+                            </div>
+                            <div class="tele-card">
+                                <div class="tele-icon"><i class="ph ph-currency-eur"></i></div>
+                                <div class="tele-val" id="t-income">0</div>
+                                <div class="tele-lbl">Remuneração</div>
+                            </div>
+                            <div class="tele-card">
+                                <div class="tele-icon"><i class="ph ph-map-trifold"></i></div>
+                                <div class="tele-val" id="t-distance">0</div>
+                                <div class="tele-lbl">Distância (km)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Job -->
+                    <div class="card">
+                        <h3 style="margin-bottom:1rem;font-size:1rem;">🚛 Job Atual</h3>
+                        <div class="job-card" id="job-info">
+                            <div style="color:var(--text-secondary);font-size:0.875rem;text-align:center;padding:1rem 0;">
+                                <i class="ph ph-truck" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
+                                Nenhum job ativo
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Log -->
+                    <div class="card">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+                            <h3 style="font-size:1rem;margin:0;">📋 Log de Eventos</h3>
+                            <button class="btn btn-ghost" style="font-size:0.75rem;padding:0.3rem 0.6rem;" onclick="clearLog()">
+                                <i class="ph ph-trash"></i> Limpar
+                            </button>
+                        </div>
+                        <div class="log-box" id="log-box">
+                            <div class="log-entry">Aguardando conexão com ETS2...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Setup Guide -->
+                <div style="display:flex;flex-direction:column;gap:1.25rem;">
+                    <div class="card">
+                        <h3 style="margin-bottom:1rem;font-size:1rem;">⚙️ Como Configurar</h3>
+                        <div class="setup-steps">
+                            <div class="setup-step">
+                                <div class="step-num">1</div>
+                                <div class="step-text">
+                                    Baixe o <strong>scs-sdk-plugin</strong> (mais atualizado):<br>
+                                    <a href="https://github.com/RenCloud/scs-sdk-plugin/releases" target="_blank">
+                                        github.com/RenCloud/scs-sdk-plugin
+                                    </a><br>
+                                    <span style="font-size:0.75rem;">Baixe o arquivo <strong>scs-sdk-plugin.zip</strong> da última release.</span>
+                                </div>
+                            </div>
+                            <div class="setup-step">
+                                <div class="step-num">2</div>
+                                <div class="step-text">
+                                    Extraia e copie o arquivo <strong>scs-telemetry.dll</strong> para:<br>
+                                    <code style="font-size:0.72rem;background:var(--surface-2);padding:0.15rem 0.4rem;border-radius:4px;">
+                                        ...\Steam\steamapps\common\Euro Truck Simulator 2\bin\win_x64\plugins\
+                                    </code><br>
+                                    <span style="font-size:0.75rem;">Crie a pasta <strong>plugins</strong> se não existir.</span>
+                                </div>
+                            </div>
+                            <div class="setup-step">
+                                <div class="step-num">3</div>
+                                <div class="step-text">
+                                    Baixe e execute o <strong>ETS2 Telemetry Server</strong>:<br>
+                                    <a href="https://github.com/Funbit/ets2-telemetry-server/releases" target="_blank">
+                                        github.com/Funbit/ets2-telemetry-server/releases
+                                    </a><br>
+                                    <span style="font-size:0.75rem;">Se a página mostrar 404, pesquise por <strong>"ets2 telemetry server"</strong> no Google e baixe a versão mais recente disponível. Execute <strong>Ets2Telemetry.exe</strong> como Administrador.</span>
+                                </div>
+                            </div>
+                            <div class="setup-step">
+                                <div class="step-num">4</div>
+                                <div class="step-text">
+                                    Abra o <strong>Euro Truck Simulator 2</strong> e entre em uma partida.
+                                </div>
+                            </div>
+                            <div class="setup-step">
+                                <div class="step-num">5</div>
+                                <div class="step-text">
+                                    Volte aqui e clique em <strong>Conectar</strong>.<br>
+                                    As viagens e multas serão salvas automaticamente!
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:1rem; padding:0.9rem; background:rgba(251,191,36,0.08); border:1px solid rgba(251,191,36,0.2); border-radius:10px; font-size:0.82rem; color:var(--text-secondary);">
+                            <i class="ph ph-lightbulb" style="color:#fbbf24;"></i>
+                            <strong style="color:#fbbf24;">Dica:</strong> O servidor roda em <code>http://localhost:25555</code>. Se aparecer erro de conexão, verifique se o <strong>Ets2Telemetry.exe</strong> está aberto e rodando.
+                        </div>
+
+                        <div style="margin-top:0.75rem; padding:0.9rem; background:rgba(52,211,153,0.08); border:1px solid rgba(52,211,153,0.2); border-radius:10px; font-size:0.82rem; color:var(--text-secondary);">
+                            <i class="ph ph-info" style="color:#34d399;"></i>
+                            <strong style="color:#34d399;">Automático:</strong> quando você entregar um job no jogo, a viagem é registrada com origem, destino, distância e remuneração. Multas também são detectadas e salvas.
+                        </div>
+                    </div>
+
+                    <!-- Stats da sessão -->
+                    <div class="card">
+                        <h3 style="margin-bottom:1rem;font-size:1rem;">📊 Sessão Atual</h3>
+                        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border);">
+                                <span style="color:var(--text-secondary);font-size:0.875rem;">Viagens registradas</span>
+                                <span style="font-weight:700;color:var(--accent);" id="sess-trips">0</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border);">
+                                <span style="color:var(--text-secondary);font-size:0.875rem;">Multas registradas</span>
+                                <span style="font-weight:700;color:#ef4444;" id="sess-fines">0</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border);">
+                                <span style="color:var(--text-secondary);font-size:0.875rem;">KMs nesta sessão</span>
+                                <span style="font-weight:700;" id="sess-km">0 km</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;">
+                                <span style="color:var(--text-secondary);font-size:0.875rem;">Ganhos nesta sessão</span>
+                                <span style="font-weight:700;color:#34d399;" id="sess-income">€ 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script><script src="js/db.js"></script>
+<script src="js/auth.js"></script><script src="js/utils.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!window.initPage('ets2sync')) return;
+    const user = Auth.getCurrentUser();
+
+    let ws = null;
+    let lastOdometer = null;
+    let lastJobActive = false;
+    let lastJobData = {};
+    let sessionTrips = 0;
+    let sessionFines = 0;
+    let sessionKm    = 0;
+    let sessionIncome = 0;
+
+    // ---- Log ----
+    function addLog(msg, type = 'ok') {
+        const box = document.getElementById('log-box');
+        const now = new Date().toLocaleTimeString('pt-BR');
+        const div = document.createElement('div');
+        div.className = `log-entry ${type}`;
+        div.textContent = `[${now}] ${msg}`;
+        box.prepend(div);
+        // Limita a 50 linhas
+        while (box.children.length > 50) box.removeChild(box.lastChild);
+    }
+    window.clearLog = () => {
+        document.getElementById('log-box').innerHTML =
+            '<div class="log-entry">Log limpo.</div>';
+    };
+
+    // ---- Status pill ----
+    function setStatus(state) {
+        const pill = document.getElementById('conn-status');
+        const btnConn = document.getElementById('btn-connect');
+        const btnDisc = document.getElementById('btn-disconnect');
+        if (state === 'connected') {
+            pill.className = 'status-pill connected';
+            pill.innerHTML = '<span class="dot"></span> Conectado';
+            btnConn.style.display = 'none';
+            btnDisc.style.display = 'inline-flex';
+        } else if (state === 'connecting') {
+            pill.className = 'status-pill connecting';
+            pill.innerHTML = '<span class="dot pulse"></span> Conectando...';
+            btnConn.disabled = true;
+        } else {
+            pill.className = 'status-pill disconnected';
+            pill.innerHTML = '<span class="dot"></span> Desconectado';
+            btnConn.style.display = 'inline-flex';
+            btnConn.disabled = false;
+            btnDisc.style.display = 'none';
+        }
+    }
+
+    // ---- Telemetry update ----
+    function updateTelemetry(data) {
+        const truck = data.truck || {};
+        const job   = data.job   || {};
+        const game  = data.game  || {};
+
+        // Velocidade
+        const speed = Math.abs(Math.round(truck.speed || 0));
+        document.getElementById('t-speed').textContent = speed;
+
+        // Odômetro (em metros → km)
+        const odometerKm = Math.round((truck.odometer || 0));
+        document.getElementById('t-odometer').textContent = fmt.number(odometerKm);
+
+        // Combustível
+        const fuelPct = truck.fuelCapacity > 0
+            ? Math.round((truck.fuel / truck.fuelCapacity) * 100) : 0;
+        document.getElementById('t-fuel').textContent = fuelPct;
+
+        // Job info
+        const cargo    = job.cargo        || '—';
+        const income   = job.income       || 0;
+        const distance = Math.round(job.plannedDistanceKm || 0);
+        document.getElementById('t-cargo').textContent    = cargo;
+        document.getElementById('t-income').textContent   = fmt.number(income);
+        document.getElementById('t-distance').textContent = distance;
+
+        // Job card
+        const src  = job.sourceCity        || '';
+        const dst  = job.destinationCity   || '';
+        const srcCo = job.sourceCompany    || '';
+        const dstCo = job.destinationCompany || '';
+
+        if (src && dst) {
+            document.getElementById('job-info').innerHTML = `
+                <div class="job-route">
+                    <span>${src}</span>
+                    <span class="arrow"><i class="ph ph-arrow-right"></i></span>
+                    <span>${dst}</span>
+                </div>
+                <div style="font-size:0.78rem;color:var(--text-secondary);margin-top:0.3rem;">
+                    ${srcCo} → ${dstCo}
+                </div>
+                <div style="display:flex;gap:1.5rem;margin-top:0.75rem;flex-wrap:wrap;">
+                    <div><span style="color:var(--text-secondary);font-size:0.78rem;">Carga</span><br><strong>${cargo}</strong></div>
+                    <div><span style="color:var(--text-secondary);font-size:0.78rem;">Distância</span><br><strong>${distance} km</strong></div>
+                    <div><span style="color:var(--text-secondary);font-size:0.78rem;">Remuneração</span><br><strong>${fmt.currency(income)}</strong></div>
+                </div>
+            `;
+            lastJobData = { source: src, destination: dst, cargo, income, distance };
+        } else {
+            document.getElementById('job-info').innerHTML = `
+                <div style="color:var(--text-secondary);font-size:0.875rem;text-align:center;padding:1rem 0;">
+                    <i class="ph ph-truck" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
+                    Nenhum job ativo
+                </div>`;
+        }
+
+        return { odometerKm, jobActive: !!(src && dst) };
+    }
+
+    // ---- Detecta entrega de job ----
+    async function onJobDelivered(jobData) {
+        addLog(`✅ Job entregue: ${jobData.source} → ${jobData.destination} (${jobData.distance} km)`, 'ok');
+        const trip = {
+            userEmail:   user.email,
+            source:      jobData.source      || 'Desconhecido',
+            destination: jobData.destination || 'Desconhecido',
+            distance:    jobData.distance    || 0,
+            cargo:       jobData.cargo       || '',
+            income:      jobData.income      || 0,
+            date:        new Date().toISOString(),
+        };
+        const result = await DB.createTrip(trip);
+        if (result) {
+            sessionTrips++;
+            sessionKm    += jobData.distance || 0;
+            sessionIncome += jobData.income  || 0;
+            updateSessionStats();
+            addLog(`💾 Viagem salva no sistema!`, 'ok');
+            showToast(`Viagem ${jobData.source} → ${jobData.destination} registrada!`);
+        } else {
+            addLog(`❌ Erro ao salvar viagem.`, 'err');
+        }
+    }
+
+    // ---- Detecta multa ----
+    async function onFine(fineType, amount) {
+        addLog(`⚠️ Multa recebida: ${fineType} — €${amount}`, 'warn');
+        const fine = {
+            userEmail: user.email,
+            type:      fineType || 'Infração',
+            amount:    amount   || 0,
+            date:      new Date().toISOString(),
+        };
+        const result = await DB.createFine(fine);
+        if (result) {
+            sessionFines++;
+            updateSessionStats();
+            addLog(`💾 Multa salva no sistema!`, 'ok');
+            showToast(`Multa (${fineType}) registrada!`, 'danger');
+        } else {
+            addLog(`❌ Erro ao salvar multa.`, 'err');
+        }
+    }
+
+    function updateSessionStats() {
+        document.getElementById('sess-trips').textContent  = sessionTrips;
+        document.getElementById('sess-fines').textContent  = sessionFines;
+        document.getElementById('sess-km').textContent     = `${fmt.number(sessionKm)} km`;
+        document.getElementById('sess-income').textContent = fmt.currency(sessionIncome);
+    }
+
+    // ---- WebSocket ----
+    function connect() {
+        setStatus('connecting');
+        addLog('Tentando conectar ao ETS2 Telemetry Server...', 'ok');
+
+        try {
+            ws = new WebSocket('ws://localhost:25555/');
+        } catch (e) {
+            setStatus('disconnected');
+            addLog('Erro ao criar WebSocket: ' + e.message, 'err');
+            return;
+        }
+
+        ws.onopen = () => {
+            setStatus('connected');
+            addLog('🟢 Conectado ao ETS2! Monitorando...', 'ok');
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                const { odometerKm, jobActive } = updateTelemetry(data);
+
+                // Detecta fim de job (estava ativo e agora não está)
+                if (lastJobActive && !jobActive && lastJobData.source) {
+                    onJobDelivered({ ...lastJobData });
+                    lastJobData = {};
+                }
+                lastJobActive = jobActive;
+
+                // Detecta evento de multa via gameplay events
+                if (data.gameplayEvent) {
+                    const evt = data.gameplayEvent;
+                    if (evt.id === 'fine') {
+                        const fineMap = {
+                            'speeding_camera':   'Excesso de Velocidade (Radar)',
+                            'avoid_sleeping':    'Dirigir Cansado',
+                            'wrong_side':        'Contramão',
+                            'speeding':          'Excesso de Velocidade',
+                            'no_lights':         'Sem Faróis',
+                            'red_signal':        'Sinal Vermelho',
+                            'crash':             'Acidente',
+                            'avoid_weighstation':'Evitar Balança',
+                            'illegal_trailer':   'Reboque Irregular',
+                        };
+                        const type = fineMap[evt.fine_offence] || evt.fine_offence || 'Infração';
+                        onFine(type, evt.fine_amount || 0);
+                    }
+                }
+
+            } catch (e) {
+                // Ignora frames inválidos
+            }
+        };
+
+        ws.onerror = () => {
+            addLog('❌ Erro de conexão. O ETS2 Telemetry Server está rodando?', 'err');
+            setStatus('disconnected');
+        };
+
+        ws.onclose = () => {
+            if (ws) {
+                addLog('🔴 Conexão encerrada.', 'warn');
+                setStatus('disconnected');
+            }
+        };
+    }
+
+    function disconnect() {
+        if (ws) { ws.close(); ws = null; }
+        setStatus('disconnected');
+        addLog('Desconectado manualmente.', 'warn');
+    }
+
+    document.getElementById('btn-connect').addEventListener('click', connect);
+    document.getElementById('btn-disconnect').addEventListener('click', disconnect);
+
+    updateTopBar();
+});
+</script>
+</body></html>

@@ -67,7 +67,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Cargo / Função</label>
-                                <input class="form-input" type="text" id="edit-role" placeholder="Ex: Motorista">
+                                <input class="form-input" type="text" id="edit-role" placeholder="Ex: Motorista" disabled style="opacity:0.6;cursor:not-allowed;" title="Apenas o Administrador pode alterar o cargo">
                             </div>
                             <button type="submit" class="btn btn-primary" id="btn-save-profile">
                                 <i class="ph ph-floppy-disk"></i> Salvar Alterações
@@ -75,14 +75,14 @@
                         </form>
                     </div>
 
-                    <div class="card">
+                    <div class="card" id="goal-card" style="display:none;">
                         <h3 style="margin-bottom:1.25rem;font-size:1rem;">🎯 Meta Mensal de KMs</h3>
                         <form id="goal-form" style="display:flex;gap:0.75rem;align-items:flex-end;">
                             <div class="form-group" style="flex:1;">
                                 <label>Meta em km</label>
                                 <input class="form-input" type="number" id="goal-input" placeholder="10000" min="0">
                             </div>
-                            <button type="submit" class="btn btn-primary">Salvar</button>
+                            <button type="submit" class="btn btn-primary" id="btn-save-goal">Salvar</button>
                         </form>
                     </div>
 

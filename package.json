@@ -1,0 +1,17 @@
+{
+  "name": "ets2-tracker-app",
+  "version": "1.0.0",
+  "description": "Euro Truck Simulator 2 Tracker Desktop App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "DC's Transportes",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^28.0.0"
+  },
+  "allowScripts": {
+    "electron@28.3.3": true
+  }
+}

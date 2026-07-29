@@ -216,8 +216,17 @@ const DB = (() => {
             .select('*')
             .eq('user_email', email)
             .single();
-        if (error) return { goal: 10000 }; // valor padrão
-        return data;
+        if (!error && data) return data;
+
+        // Se o usuário não tiver meta individual, busca a meta global
+        const { data: globalData } = await sb
+            .from('prefs')
+            .select('*')
+            .eq('user_email', '__global__')
+            .single();
+        if (globalData) return globalData;
+
+        return { goal: 10000 };
     }
 
     async function savePrefs(email, goal) {
@@ -228,6 +237,26 @@ const DB = (() => {
             .single();
         if (error) return handleError('savePrefs', error);
         return data;
+    }
+
+    async function setGlobalGoal(goal) {
+        const users = await getUsers();
+        const activeUsers = users.filter(u => u.status === 'active');
+        const records = activeUsers.map(u => ({
+            user_email: u.email,
+            goal: goal,
+            updated_at: new Date().toISOString()
+        }));
+        records.push({
+            user_email: '__global__',
+            goal: goal,
+            updated_at: new Date().toISOString()
+        });
+        const { error } = await sb
+            .from('prefs')
+            .upsert(records);
+        if (error) return handleError('setGlobalGoal', error);
+        return true;
     }
 
     // ==========================================================
@@ -256,6 +285,38 @@ const DB = (() => {
     }
 
     // ==========================================================
+    //  CHANGE EMAIL — Atualiza email em todas as tabelas
+    // ==========================================================
+
+    /**
+     * Altera o email do usuário em todas as tabelas relacionadas.
+     * Retorna { success, error } para que o chamador possa exibir mensagem.
+     */
+    async function changeEmail(oldEmail, newEmail) {
+        // 1. Verifica se o novo email já está em uso
+        const existing = await getUserByEmail(newEmail);
+        if (existing) return { success: false, error: 'Este email já está cadastrado.' };
+
+        // 2. Atualiza o email na tabela profiles
+        const { error: e1 } = await sb
+            .from('profiles')
+            .update({ email: newEmail })
+            .eq('email', oldEmail);
+        if (e1) return { success: false, error: 'Erro ao atualizar o perfil.' };
+
+        // 3. Atualiza trips
+        await sb.from('trips').update({ user_email: newEmail }).eq('user_email', oldEmail);
+
+        // 4. Atualiza fines
+        await sb.from('fines').update({ user_email: newEmail }).eq('user_email', oldEmail);
+
+        // 5. Atualiza prefs
+        await sb.from('prefs').update({ user_email: newEmail }).eq('user_email', oldEmail);
+
+        return { success: true };
+    }
+
+    // ==========================================================
     //  API pública do módulo DB
     // ==========================================================
     return {
@@ -279,11 +340,15 @@ const DB = (() => {
         createFine,
         deleteFinesByUser,
 
-        // Preferências
+        // Preferências / Metas
         getPrefs,
         savePrefs,
+        setGlobalGoal,
 
         // Storage
         uploadAvatar,
+
+        // Email
+        changeEmail,
     };
 })();

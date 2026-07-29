@@ -114,6 +114,26 @@ img { max-width: 100%; }
 .nav-link.nav-admin { color: var(--warning); }
 .nav-link.nav-admin:hover, .nav-link.nav-admin.active { background: rgba(245,158,11,0.1); color: var(--warning); border-color: rgba(245,158,11,0.3); }
 
+.nav-badge {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: badge-pop 0.3s ease;
+}
+@keyframes badge-pop {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+
 .sidebar-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); }
 
 .btn-logout {
@@ -230,6 +250,78 @@ img { max-width: 100%; }
 .section-header h2 { font-size: 1.2rem; font-weight: 700; }
 .section-title { display: flex; align-items: center; gap: 0.5rem; }
 .section-title i { font-size: 1.2rem; color: var(--accent); }
+
+/* Dashboard Tabs */
+.dash-tabs {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.dash-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.dash-tab i {
+    font-size: 1.1rem;
+}
+.dash-tab:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+.dash-tab.active {
+    background: var(--accent-glow);
+    color: var(--accent-light);
+    border-color: rgba(59,130,246,0.4);
+    box-shadow: 0 4px 12px rgba(59,130,246,0.15);
+}
+
+.personal-header-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.personal-user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.personal-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--bg-hover);
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.personal-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 
 /* ============================================================
    CARDS & GRID
@@ -682,6 +774,59 @@ select.form-input { cursor: pointer; }
 }
 .modal-header h2 { font-size: 1.1rem; font-weight: 700; }
 
+/* Profile View Modal */
+.profile-modal-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--bg-hover);
+    border: 3px solid var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    overflow: hidden;
+    margin: 0 auto 0.75rem;
+}
+.profile-modal-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+.profile-stat-box {
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.profile-stat-box .lbl {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.profile-stat-box .lbl i {
+    font-size: 0.9rem;
+    color: var(--accent);
+}
+.profile-stat-box .val {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
 /* ============================================================
    EMPTY STATE
    ============================================================ */
@@ -797,6 +942,57 @@ select.form-input { cursor: pointer; }
     border: none;
 }
 .input-icon-wrap .password-toggle:hover { color: var(--text-primary); }
+
+.form-group-remember {
+    display: flex;
+    align-items: center;
+    margin-top: -0.25rem;
+}
+.remember-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s;
+}
+.remember-label:hover {
+    color: var(--text-primary);
+}
+.remember-label input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-dark);
+    cursor: pointer;
+    position: relative;
+    outline: none;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.remember-label input[type="checkbox"]:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+.remember-label input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 5px;
+    height: 9px;
+    border: solid #ffffff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+.remember-label input[type="checkbox"]:focus-visible {
+    box-shadow: 0 0 0 2px var(--accent-glow);
+}
 
 .auth-divider {
     text-align: center;

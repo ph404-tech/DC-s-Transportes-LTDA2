@@ -7,12 +7,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         const fresh = await DB.getUserByEmail(user.email);
         if (fresh) { user = fresh; Auth._setSession(fresh); }
 
+        const isAdmin = user.email === 'pedro@gmail.com' || user.role === 'Administrador';
+
         document.getElementById('profile-name').textContent = user.name;
         document.getElementById('profile-email').value      = user.email;
         document.getElementById('edit-name').value          = user.name;
         document.getElementById('edit-email').value         = user.email;
-        document.getElementById('edit-role').value          = user.role || '';
         document.getElementById('profile-role').textContent = user.role || 'Motorista';
+
+        const editRoleInput = document.getElementById('edit-role');
+        if (editRoleInput) {
+            editRoleInput.value = user.role || '';
+            // Cargo nunca é editável no próprio perfil — somente o dono altera via Painel Admin
+            editRoleInput.disabled = true;
+            editRoleInput.style.opacity = '0.6';
+            editRoleInput.style.cursor = 'not-allowed';
+        }
 
         const avatarWrap = document.getElementById('avatar-wrap');
         if (user.avatar_url) {
@@ -22,7 +32,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Goal
         const prefs = await DB.getPrefs(user.email);
         const goal = prefs?.goal || 10000;
-        document.getElementById('goal-input').value = goal;
+        const goalCard = document.getElementById('goal-card');
+
+        if (goalCard) {
+            if (!isAdmin) {
+                goalCard.style.display = 'none';
+            } else {
+                goalCard.style.display = 'block';
+                document.getElementById('goal-input').value = goal;
+            }
+        }
 
         const trips = await DB.getTripsByUser(user.email);
         const now   = new Date();
@@ -62,9 +81,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         const btn = document.getElementById('btn-save-profile');
         btn.disabled = true; btn.textContent = 'Salvando...';
+
+        // Cargo nunca é enviado aqui — somente o dono altera cargo pelo Painel Admin
         const updated = await DB.updateUser(user.email, {
-            name: document.getElementById('edit-name').value.trim(),
-            role: document.getElementById('edit-role').value.trim(),
+            name: document.getElementById('edit-name').value.trim()
         });
         if (updated) { showToast('Perfil atualizado!'); await loadProfile(); }
         else showToast('Erro ao salvar.', 'danger');
@@ -74,6 +94,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Goal form
     document.getElementById('goal-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const isAdmin = user.email === 'pedro@gmail.com' || user.role === 'Administrador';
+        if (!isAdmin) {
+            showToast('Apenas administradores podem alterar metas mensais.', 'danger');
+            return;
+        }
         const goal = parseInt(document.getElementById('goal-input').value) || 10000;
         await DB.savePrefs(user.email, goal);
         showToast('Meta atualizada!');

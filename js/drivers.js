@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ? `<img src="${d.avatar_url}" alt="${d.name}">`
                 : `<i class="ph ph-user"></i>`;
             return `
-                <div class="driver-card">
+                <div class="driver-card" style="cursor:pointer;" onclick="viewUserProfile('${d.email}')" title="Clique para ver o perfil de ${d.name}">
                     <div class="rank-badge ${rankClass}">${i+1}º</div>
                     <div class="driver-avatar-wrap">${avatarHtml}</div>
                     <div class="driver-name">${d.name}</div>

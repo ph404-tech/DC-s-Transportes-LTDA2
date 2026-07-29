@@ -1,34 +1,106 @@
 // =============================================================
-//  dashboard.js — Painel de Controle
+//  dashboard.js — Painel de Controle (Pessoal & Empresa)
 // =============================================================
 document.addEventListener('DOMContentLoaded', async () => {
     if (!window.initPage('dashboard')) return;
 
-    const user = Auth.getCurrentUser();
-    let trips = [], fines = [];
+    let user = Auth.getCurrentUser();
+    let currentTab = 'personal'; // 'personal' | 'company'
+
+    let personalTrips = [], personalFines = [], prefs = null;
+    let allTrips = [], allFines = [];
 
     async function loadData() {
-        [trips, fines] = await Promise.all([
+        const freshUser = await DB.getUserByEmail(user.email);
+        if (freshUser) { user = freshUser; Auth._setSession(freshUser); }
+
+        const [pTrips, pFines, pPrefs, aTrips, aFines] = await Promise.all([
             DB.getTripsByUser(user.email),
-            DB.getFinesByUser(user.email)
+            DB.getFinesByUser(user.email),
+            DB.getPrefs(user.email),
+            DB.getTrips(),
+            DB.getFines()
         ]);
+        personalTrips = pTrips;
+        personalFines = pFines;
+        prefs = pPrefs;
+        allTrips = aTrips;
+        allFines = aFines;
     }
 
-    // --- Stats ---
+    function renderHeader() {
+        const personalHeader = document.getElementById('personal-header');
+        const tripActions    = document.getElementById('trip-actions');
+
+        if (currentTab === 'personal') {
+            personalHeader.style.display = 'flex';
+            if (tripActions) tripActions.style.display = 'flex';
+
+            // Name & Avatar
+            document.getElementById('dash-user-name').textContent = user.name || 'Motorista';
+            const avatarEl = document.getElementById('dash-user-avatar');
+            if (user.avatar_url) {
+                avatarEl.innerHTML = `<img src="${user.avatar_url}" alt="${user.name}">`;
+            } else {
+                avatarEl.innerHTML = `<i class="ph ph-user"></i>`;
+            }
+
+            // Role & Level
+            const isAdmin = user.email === 'pedro@gmail.com' || user.role === 'Administrador';
+            const roleEl = document.getElementById('dash-user-role');
+            roleEl.textContent = isAdmin ? '👑 Administrador' : (user.role || 'Motorista');
+            roleEl.className = `role-badge ${isAdmin ? 'role-admin' : 'role-driver'}`;
+
+            const totalKm = personalTrips.reduce((s, t) => s + (t.distance || 0), 0);
+            const lvl = fmt.level(totalKm);
+            const levelEl = document.getElementById('dash-user-level');
+            levelEl.textContent = `Nível: ${lvl.name}`;
+            levelEl.style.color = lvl.color;
+
+            // Monthly Goal
+            const goal = prefs?.goal || 10000;
+            const now = new Date();
+            const month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+            const monthKm = personalTrips.filter(t => t.date && t.date.startsWith(month)).reduce((s, t) => s + (t.distance || 0), 0);
+            const pct = Math.min(100, Math.round((monthKm / goal) * 100));
+
+            document.getElementById('dash-goal-label').textContent = `${fmt.number(monthKm)} / ${fmt.number(goal)} km (${pct}%)`;
+            document.getElementById('dash-goal-fill').style.width = `${pct}%`;
+        } else {
+            personalHeader.style.display = 'none';
+            if (tripActions) tripActions.style.display = 'none';
+        }
+    }
+
     function renderStats() {
-        const totalKm     = trips.reduce((s, t) => s + (t.distance || 0), 0);
-        const totalIncome = trips.reduce((s, t) => s + (t.income   || 0), 0);
+        const isPersonal = currentTab === 'personal';
+        const tripsList = isPersonal ? personalTrips : allTrips;
+        const finesList = isPersonal ? personalFines : allFines;
+
+        const totalKm       = tripsList.reduce((s, t) => s + (t.distance || 0), 0);
+        const totalIncome   = tripsList.reduce((s, t) => s + (t.income   || 0), 0);
+        const totalFinesAmt = finesList.reduce((s, f) => s + (f.amount || 0), 0);
+
+        document.getElementById('lbl-km').textContent     = isPersonal ? 'Meus KMs Percorridos' : 'Total Empresa (KMs)';
+        document.getElementById('lbl-trips').textContent  = isPersonal ? 'Minhas Viagens'       : 'Viagens da Empresa';
+        document.getElementById('lbl-income').textContent = isPersonal ? 'Meu Lucro Líquido'     : 'Lucro Total Empresa';
+        document.getElementById('lbl-fines').textContent  = isPersonal ? 'Minhas Multas'        : 'Multas da Empresa';
+
         document.getElementById('stat-km').textContent     = `${fmt.number(totalKm)} km`;
-        document.getElementById('stat-trips').textContent  = trips.length;
-        document.getElementById('stat-income').textContent = fmt.currency(totalIncome);
-        document.getElementById('stat-fines').textContent  = fines.length;
+        document.getElementById('stat-trips').textContent  = tripsList.length;
+        document.getElementById('stat-income').textContent = fmt.currency(totalIncome - totalFinesAmt);
+        document.getElementById('stat-fines').textContent  = `${finesList.length} (${fmt.currency(totalFinesAmt)})`;
     }
 
-    // --- Monthly Stats ---
     function renderMonthly() {
+        const isPersonal = currentTab === 'personal';
+        document.getElementById('monthly-title').textContent = isPersonal ? 'Minhas Estatísticas Mensais' : 'Desempenho Mensal da Empresa';
+
         const grid = document.getElementById('monthly-grid');
+        const tripsList = isPersonal ? personalTrips : allTrips;
+
         const stats = {};
-        trips.forEach(t => {
+        tripsList.forEach(t => {
             const d   = t.date ? new Date(t.date) : new Date();
             const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
             const lbl = `${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
@@ -37,6 +109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             stats[key].loads  += 1;
             stats[key].income += t.income   || 0;
         });
+
         const sorted = Object.values(stats).sort((a, b) => b.key.localeCompare(a.key));
         if (!sorted.length) {
             grid.innerHTML = '<div class="empty-state"><i class="ph ph-calendar-x"></i><p>Nenhuma estatística ainda.</p></div>';
@@ -52,20 +125,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         `).join('');
     }
 
-    // --- Trip List ---
     function renderTrips() {
+        const isPersonal = currentTab === 'personal';
+        document.getElementById('trips-title').textContent = isPersonal ? 'Minhas Últimas Viagens' : 'Todas as Viagens da Empresa';
+
         const list = document.getElementById('trips-list');
-        if (!trips.length) {
+        const tripsList = isPersonal ? personalTrips : allTrips;
+
+        if (!tripsList.length) {
             list.innerHTML = '<div class="empty-state"><i class="ph ph-road-horizon"></i><p>Nenhuma viagem registrada ainda.</p></div>';
             return;
         }
-        list.innerHTML = trips.map(t => `
+
+        list.innerHTML = tripsList.map(t => `
             <div class="trip-card">
                 <div>
                     <div class="trip-route">
                         ${t.source || '?'} <i class="ph ph-arrow-right"></i> ${t.destination || '?'}
                     </div>
                     <div class="trip-meta">
+                        ${!isPersonal && t.user_email ? `<span style="font-weight:600;color:var(--accent-light);">${t.user_email}</span> • ` : ''}
                         ${t.cargo ? `<span>${t.cargo}</span>` : ''}
                         <span>${fmt.date(t.date)}</span>
                     </div>
@@ -80,10 +159,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function render() {
         await loadData();
+        renderHeader();
         renderStats();
         renderMonthly();
         renderTrips();
     }
+
+    // Tabs Click
+    const tabPersonal = document.getElementById('tab-personal');
+    const tabCompany = document.getElementById('tab-company');
+
+    tabPersonal.onclick = async () => {
+        if (currentTab === 'personal') return;
+        currentTab = 'personal';
+        tabPersonal.classList.add('active');
+        tabCompany.classList.remove('active');
+        await render();
+    };
+
+    tabCompany.onclick = async () => {
+        if (currentTab === 'company') return;
+        currentTab = 'company';
+        tabCompany.classList.add('active');
+        tabPersonal.classList.remove('active');
+        await render();
+    };
 
     await render();
 

@@ -24,30 +24,63 @@
             </a>
         </div>
         <div class="page-content">
+            <!-- Tabs Navigation -->
+            <div class="dash-tabs">
+                <button class="dash-tab active" id="tab-personal">
+                    <i class="ph ph-user"></i> Meu Dashboard Pessoal
+                </button>
+                <button class="dash-tab" id="tab-company">
+                    <i class="ph ph-buildings"></i> Dashboard da Empresa
+                </button>
+            </div>
+
+            <!-- Personal Header Card -->
+            <div class="personal-header-card" id="personal-header" style="display:none;">
+                <div class="personal-user-info">
+                    <div class="personal-avatar" id="dash-user-avatar"><i class="ph ph-user"></i></div>
+                    <div>
+                        <h2 style="font-size:1.15rem;font-weight:800;" id="dash-user-name">Carregando...</h2>
+                        <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.25rem;">
+                            <span class="role-badge role-driver" id="dash-user-role">Motorista</span>
+                            <span style="font-weight:600;font-size:0.8rem;" id="dash-user-level">Nível: -</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="min-width:240px;flex:1;max-width:380px;">
+                    <div class="quota-bar-wrap">
+                        <label>
+                            <span>Meta Mensal</span>
+                            <span id="dash-goal-label">0 / 0 km</span>
+                        </label>
+                        <div class="quota-bar"><div class="quota-fill" id="dash-goal-fill" style="width:0%"></div></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Stats -->
             <div class="stats-grid" id="stats-grid">
                 <div class="stat-card">
                     <div class="icon"><i class="ph ph-gauge"></i></div>
-                    <div><div class="label">Total Percorrido</div><div class="value" id="stat-km">0 km</div></div>
+                    <div><div class="label" id="lbl-km">Meus KMs Percorridos</div><div class="value" id="stat-km">0 km</div></div>
                 </div>
                 <div class="stat-card">
                     <div class="icon"><i class="ph ph-truck"></i></div>
-                    <div><div class="label">Viagens</div><div class="value" id="stat-trips">0</div></div>
+                    <div><div class="label" id="lbl-trips">Minhas Viagens</div><div class="value" id="stat-trips">0</div></div>
                 </div>
                 <div class="stat-card">
                     <div class="icon green"><i class="ph ph-currency-eur"></i></div>
-                    <div><div class="label">Lucro Total</div><div class="value" id="stat-income">€ 0</div></div>
+                    <div><div class="label" id="lbl-income">Meu Lucro Líquido</div><div class="value" id="stat-income">€ 0</div></div>
                 </div>
                 <div class="stat-card">
                     <div class="icon red"><i class="ph ph-warning-circle"></i></div>
-                    <div><div class="label">Multas</div><div class="value" id="stat-fines">0</div></div>
+                    <div><div class="label" id="lbl-fines">Minhas Multas</div><div class="value" id="stat-fines">0</div></div>
                 </div>
             </div>
 
             <!-- Monthly Stats -->
             <div class="card" style="margin-bottom:1.5rem;">
                 <div class="section-header">
-                    <div class="section-title"><i class="ph ph-chart-bar"></i><h2>Estatísticas Mensais</h2></div>
+                    <div class="section-title"><i class="ph ph-chart-bar"></i><h2 id="monthly-title">Minhas Estatísticas Mensais</h2></div>
                 </div>
                 <div class="monthly-grid" id="monthly-grid">
                     <div class="loading"><div class="spinner"></div> Carregando...</div>
@@ -57,8 +90,8 @@
             <!-- Trip History -->
             <div class="card">
                 <div class="section-header">
-                    <div class="section-title"><i class="ph ph-road-horizon"></i><h2>Últimas Viagens</h2></div>
-                    <div style="display:flex;gap:0.5rem;">
+                    <div class="section-title"><i class="ph ph-road-horizon"></i><h2 id="trips-title">Minhas Últimas Viagens</h2></div>
+                    <div style="display:flex;gap:0.5rem;" id="trip-actions">
                         <button class="btn btn-primary" id="btn-add-trip"><i class="ph ph-plus"></i> Nova Viagem</button>
                         <button class="icon-btn" id="btn-clear-history" title="Limpar histórico"><i class="ph ph-trash"></i></button>
                     </div>
